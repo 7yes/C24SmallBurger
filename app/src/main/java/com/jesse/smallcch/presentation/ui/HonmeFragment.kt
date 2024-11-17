@@ -4,11 +4,9 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.jesse.smallcch.R
@@ -38,12 +36,26 @@ class HonmeFragment : Fragment() {
     ): View {
         _binding = FragmentHonmeBinding.inflate(layoutInflater, container, false)
 
-        initRV()
-        viewModel.myData.observe(viewLifecycleOwner) {
-            myList.clear()
-            myList.addAll(it)
-            adapter.notifyDataSetChanged()
+        viewModel.state.observe(viewLifecycleOwner){
+            when(it){
+                is UIState.Error -> { binding.progressCircular.visibility = View.GONE
+                    Toast.makeText(requireContext(), "Some Error ${it.error}", Toast.LENGTH_SHORT).show()
+                }
+                UIState.Loading -> binding.progressCircular.visibility = View.VISIBLE
+                is UIState.Success -> {
+                    binding.progressCircular.visibility = View.GONE
+                    myList.clear()
+                    myList.addAll(it.mySuccessList)
+                    adapter.notifyDataSetChanged()
+                }
+            }
         }
+        initRV()
+//        viewModel.myData.observe(viewLifecycleOwner) {
+//            myList.clear()
+//            myList.addAll(it)
+//            adapter.notifyDataSetChanged()
+//        }
         return binding.root
     }
 
